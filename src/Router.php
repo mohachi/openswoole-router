@@ -28,9 +28,11 @@ class Router
     // [ ["GET" => ["pattern" => "", "handler" => func] ]... ]
     private $handlers = [];
     
-    public function __construct(readonly Server $server)
+    public function __construct(readonly Server $server) {}
+    
+    public function post(string $pattern, callable $handler)
     {
-        
+        $this->setHandler(self::POST, $pattern, $handler);
     }
     
     public function get(string $pattern, callable $handler)

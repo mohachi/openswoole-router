@@ -1,6 +1,6 @@
 {
     "name": "mohachi/routing",
-    "version": "0.1",
+    "version": "0.2",
     "require": {
         "openswoole/ide-helper": "^22.1"
     },
