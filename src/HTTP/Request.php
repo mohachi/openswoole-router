@@ -12,12 +12,16 @@ use OutOfBoundsException;
 class Request
 {
     
+    readonly string $path;
     private bool $end = true;
     
     /**
      * @param array<string, string> $data
      */
-    public function __construct(readonly HttpRequest $request, private array $data) {}
+    public function __construct(readonly HttpRequest $request, private array $data)
+    {
+        $this->path = $request->server["path_info"];
+    }
     
     public function __get($key)
     {
