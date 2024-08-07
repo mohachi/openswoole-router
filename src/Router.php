@@ -2,126 +2,64 @@
 
 namespace Mohachi\Router;
 
-use Exception;
-use Mohachi\Router\HTTP\Request as HTTPRequest;
+use Closure;
+use Mohachi\Router\HTTP\Method;
 use OpenSwoole\Http\Request;
 use OpenSwoole\Http\Response;
 use OpenSwoole\Http\Server;
-use OutOfBoundsException;
-use ReflectionFunction;
-use ReflectionIntersectionType;
-use ReflectionNamedType;
-use ReflectionParameter;
-use ReflectionUnionType;
 
 class Router
 {
-    const GET = "GET";
-    const POST = "POST";
-    
-    private $subtitutions = [
-        "~(/\\\\\*(\\\\\*)+)+~" => "(?:/.+?)?",
-        "~\\\\\*~" => "[^/]+?",
-        "~\\\\{([\da-z][\w_]*?)\\\\}~i" => "(?<$1>[^/]+?)"
+    private $routes = [
+        Method::Get->value => [],
+        Method::Post->value => [],
     ];
     
-    // [ ["GET" => ["pattern" => "", "handler" => func] ]... ]
-    private $handlers = [];
-    
-    public function __construct(readonly Server $server) {}
-    
-    public function post(string $pattern, callable $handler)
+    public function get(string $pattern, Closure|string $handler)
     {
-        $this->setHandler(self::POST, $pattern, $handler);
+        $this->routes[Method::Get->value][] = new Route($pattern, $handler);
     }
     
-    public function get(string $pattern, callable $handler)
+    public function post(string $pattern, Closure|string $handler)
     {
-        $this->setHandler(self::GET, $pattern, $handler);
+        $this->routes[Method::Post->value][] = new Route($pattern, $handler);
     }
     
-    public function setHandler(string $method, string $pattern, callable $handler)
+    public function any(string $pattern, Closure|string $handler)
     {
-        $p = preg_replace(
-            array_keys($this->subtitutions),
-            array_values($this->subtitutions),
-            preg_quote($pattern, "~")
-        );
+        $route = new Route($pattern, $handler);
+        $this->routes[Method::Get->value][] = $route;
+        $this->routes[Method::Post->value][] = $route;
+    }
+    
+    public function match(Request $request): ?Route
+    {
+        $path = $request->server["path_info"];
         
-        if( null === $p )
+        foreach( $this->routes[$request->getMethod()] as $route )
         {
-            throw new Exception("Unvalid route pattern");
+            if( $route->match($path) )
+            {
+                return $route;
+            }
         }
         
-        $this->handlers[$method][] = [
-            "pattern" => "~^$p$~",
-            "handler" => $handler,
-            "params" => (new ReflectionFunction($handler))->getParameters()
-        ];
+        return null;
     }
     
-    public function register()
+    public function register(Server $server)
     {
-        $this->server->on("request", function(Request $request, Response $response)
+        $server->on("request", function(Request $request, Response $response)
         {
-            $hash = [];
-            $path = $request->server["path_info"];
+            $response->detach();
+            $route = $this->match($request);
             
-            foreach( $this->handlers[$request->getMethod()] as [
-                "pattern" => $pattern,
-                "handler" => $handler,
-                "params" => $params] )
+            if( null !== $route )
             {
-                if( preg_match($pattern, $path, $matches) )
-                {
-                    $args = [];
-                    $hash += array_filter($matches, fn($i) => is_string($i), ARRAY_FILTER_USE_KEY);
-                    $routeRequest = new HTTPRequest($request, $hash);
-                    
-                    foreach( $params as $param )
-                    {
-                        $types = [];
-                        if( ! $param->hasType() && key_exists($param->name, $hash) )
-                        {
-                            $args[] = $hash[$param->name];
-                            continue;
-                        }
-                        elseif( $param->getType() instanceof ReflectionUnionType || $param->getType() instanceof ReflectionIntersectionType )
-                        {
-                            $types = $param->getType()->getTypes();
-                        }
-                        elseif( $param->getType() instanceof ReflectionNamedType )
-                        {
-                            $types[] = $param->getType()->getName();
-                        }
-                        
-                        foreach( $types as $type )
-                        {
-                            $args[] = match($type)
-                            {
-                                Request::class => $request,
-                                Response::class => $response,
-                                HTTPRequest::class => $routeRequest,
-                                default => throw new OutOfBoundsException()
-                            };
-                        }
-                        
-                    }
-                    
-                    call_user_func_array($handler, $args);
-                    
-                    if( $routeRequest->isEnded() )
-                    {
-                        return;
-                    }
-                }
-            }
-            
-            if( $response->isWritable() )
-            {
-                $response->status(404);
+                $args = [$request, ...array_values($route->getArguments())];
+                call_user_func_array($route->handler, $args);
             }
         });
     }
-    
 }
+
