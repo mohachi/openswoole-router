@@ -1,18 +1,16 @@
 {
     "name": "mohachi/routing",
     "version": "0.3",
-    "require": {
-        "openswoole/ide-helper": "^22.1"
-    },
     "require-dev": {
         "symfony/var-dumper": "^7.0",
-        "nunomaduro/collision": "^8.1",
-        "league/climate": "^3.8",
-        "phpstan/phpstan": "^1.10"
+        "openswoole/ide-helper": "^22.1"
     },
     "autoload": {
         "psr-4": {
             "Mohachi\\Router\\": "src/"
         }
+    },
+    "require": {
+        "psr/http-message": "^2.0"
     }
 }
