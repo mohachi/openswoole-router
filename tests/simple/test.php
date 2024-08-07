@@ -1,6 +1,6 @@
 <?php
 
-use Mohachi\Router\Router;
+use Mohachi\Openswoole\Router;
 use OpenSwoole\Http\Request;
 use OpenSwoole\Http\Response;
 use OpenSwoole\Http\Server;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Mohachi\Router\HTTP;
+namespace Mohachi\Openswoole\HTTP;
 
 enum Method: string
 {

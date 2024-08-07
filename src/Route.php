@@ -1,6 +1,6 @@
 <?php
 
-namespace Mohachi\Router;
+namespace Mohachi\Openswoole;
 
 use Closure;
 use Exception;

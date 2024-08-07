@@ -1,9 +1,9 @@
 <?php
 
-namespace Mohachi\Router;
+namespace Mohachi\Openswoole;
 
 use Closure;
-use Mohachi\Router\HTTP\Method;
+use Mohachi\Openswoole\HTTP\Method;
 use OpenSwoole\Http\Request;
 use OpenSwoole\Http\Response;
 use OpenSwoole\Http\Server;

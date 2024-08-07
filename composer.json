@@ -1,16 +1,13 @@
 {
-    "name": "mohachi/routing",
-    "version": "0.3",
+    "name": "mohachi/openswoole-router",
+    "version": "0.1.0",
     "require-dev": {
         "symfony/var-dumper": "^7.0",
         "openswoole/ide-helper": "^22.1"
     },
     "autoload": {
         "psr-4": {
-            "Mohachi\\Router\\": "src/"
+            "Mohachi\\Openswoole\\": "src/"
         }
-    },
-    "require": {
-        "psr/http-message": "^2.0"
     }
 }

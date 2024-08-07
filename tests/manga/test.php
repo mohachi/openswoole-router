@@ -1,14 +1,14 @@
 <?php
 
-use Mohachi\Router\Router;
+use Mohachi\Openswoole\Router;
 use OpenSwoole\Http\Request;
 use OpenSwoole\Http\Response;
 use OpenSwoole\Http\Server;
 
 require_once __DIR__ . "/../../vendor/autoload.php";
 
-$ser = new Server("localhost", 1111);
 $router = new Router();
+$server = new Server("localhost", 1111);
 
 $router->get("/manga/{manga}/chapter/{chapter}", function(Request $request, $manga, $chapter)
 {
@@ -17,5 +17,5 @@ $router->get("/manga/{manga}/chapter/{chapter}", function(Request $request, $man
     $res->end("welcome\n");
 });
 
-$router->register($ser);
-$ser->start();
+$router->register($server);
+$server->start();
